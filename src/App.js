@@ -1,37 +1,36 @@
-import { Link } from "react-router-dom"
-import { useState } from "react"
+import { BrowserRouter, Route, Routes } from "react-router-dom"
 import Header from "./components/Header"
 import FeedbackList from "./components/FeedbackList"
 import FeedbackStats from "./components/FeedbackStats"
-import FeedbackData from "./data/feedbackData"
 import FeedbackForm from "./components/FeedbackForm"
-import AboutPage from "./pages/AboutPage"
+import AboutIconLink from "./components/AboutIconLink"
+import AboutPage from "./routes/AboutPage"
+import {FeedbackProvider} from "./context/FeedbackContext"
 
-// Tommorow check this link https://reactrouter.com/docs/en/v6/getting-started/tutorial#add-some-links and try to finsh the router
+
+// Tommorow check this link https://reactrouter.com/docs/en/v6/getting-started/tutorial#add-some-links and try to finsh the router ✅
 
 function App() {
-    const [feedback, setFeedback] = useState(FeedbackData)
-
-    const addFeedback = (newFeedback) => {
-        setFeedback(prevFeedback => [{...newFeedback, id: prevFeedback.length + 1}, ...prevFeedback])
-    }
-
-    const deleteFeedback = (id) => {
-        if(window.confirm('Are you sure about that')) {
-            setFeedback(prevFeedback => prevFeedback.filter(item => item.id !== id))
-        }
-    }
 
     return (
-        <>
-            <Header />
-            <div className="container">
-                <FeedbackForm handleAdd={addFeedback} />
-                <FeedbackStats feedback={feedback} />
-                <FeedbackList handleDelete={deleteFeedback} feedback={feedback} />
-                <AboutPage />
-            </div>
-        </>
+        <FeedbackProvider>
+            <BrowserRouter>
+                <Header />
+                <div className="container">
+                    <Routes>
+                        <Route exact path="/" element={
+                            <>
+                                <FeedbackForm />
+                                <FeedbackStats />
+                                <FeedbackList />
+                            </>
+                        } />
+                        <Route path="/about" element={<AboutPage />} />
+                    </Routes>
+                    <AboutIconLink />
+                </div>
+            </BrowserRouter>
+        </FeedbackProvider>
     )
 }
 
