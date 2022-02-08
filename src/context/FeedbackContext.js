@@ -1,30 +1,63 @@
-import {createContext, useState} from "react"
-import FeedbackData from "../data/feedbackData"
+import {createContext, useState, useEffect} from "react"
 
 const FeedbackContext = createContext()
 
+
 export const FeedbackProvider = ({children}) => {
- const [feedback, setFeedback] = useState(FeedbackData)
- const [feedbackEdit, setFeedbackEdit] = useState({
-  item: {},
-  edit: false
- })
- 
- const addFeedback = (newFeedback) => {
-  setFeedback(prevFeedback => [{...newFeedback, id: prevFeedback.length + 1}, ...prevFeedback])
+  const [isLoading, setIsLoading] = useState(true)
+  const [feedback, setFeedback] = useState([])
+  const [feedbackEdit, setFeedbackEdit] = useState({
+    item: {},
+    edit: false
+  })
+
+  useEffect(() => {
+    fetchDate()
+  },[])
+
+  const fetchDate = async () => {
+    const res = await fetch("http://localhost:5000/feedback?_sort=id&_order=desc")
+    const data = await res.json()
+    setFeedback(data)
+    setIsLoading(false)
+  }
+  
+ const addFeedback = async (newFeedback) => {
+   const res = await fetch("http://localhost:5000/feedback", {
+     method: "POST",
+     headers: {
+       "Content-Type": "application/json"
+     },
+     body: JSON.stringify(newFeedback)
+   })
+
+   const data = await res.json()
+  setFeedback(prevFeedback => [data, ...prevFeedback])
  }
 
 
- const deleteFeedback = (id) => {
+ const deleteFeedback = async (id) => {
   if(window.confirm('Are you sure about that')) {
+      await fetch(`http://localhost:5000/feedback/${id}`, {
+        method: "DELETE"
+      })
       setFeedback(prevFeedback => prevFeedback.filter(item => item.id !== id))
   }
 }
 
-const updateFeedback = (id, updItem) => {
+const updateFeedback = async (id, updItem) => {
+
+ const res = await fetch(`http://localhost:5000/feedback/${id}`, {
+   method: "PUT",
+   headers: {
+    "Content-Type": "application/json"
+   },
+   body: JSON.stringify(updItem)
+ })
+ const data = await res.json()
  setFeedback(prevFeedback => prevFeedback.map(item => {
   if(item.id === id) {
-   return {...item, ...updItem}
+   return data
   } else {
    return item
   }
@@ -44,7 +77,8 @@ const editFeedback = (item) => {
    addFeedback,
    editFeedback,
    feedbackEdit,
-   updateFeedback
+   updateFeedback,
+   isLoading
   }}>
    {children}
   </FeedbackContext.Provider>
